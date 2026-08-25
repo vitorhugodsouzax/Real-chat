@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: realchat
+      POSTGRES_PASSWORD: realchat
+      POSTGRES_DB: realchat
+    ports:
+      - "5432:5432"
+    volumes:
+      - realchat_pgdata:/var/lib/postgresql/data
+
+volumes:
+  realchat_pgdata:
