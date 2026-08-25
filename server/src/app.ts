@@ -1,5 +1,7 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import jwtPlugin from './plugins/jwt.js';
+import { authRoutes } from './modules/auth/auth.routes.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: true });
@@ -9,6 +11,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   app.get('/health', async () => ({ status: 'ok' }));
+
+  await app.register(jwtPlugin);
+  await app.register(authRoutes);
 
   return app;
 }
