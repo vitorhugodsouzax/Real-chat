@@ -5,23 +5,33 @@ import { isMember, joinChannel } from '../../modules/channels/channels.service.j
 
 export function registerChannelHandlers(app: FastifyInstance, socket: Socket) {
   socket.on('channel:join', async (payload) => {
-    const parsed = channelJoinSchema.safeParse(payload);
-    if (!parsed.success) return socket.emit('error', { code: 'invalid_payload', message: parsed.error.message });
+    try {
+      const parsed = channelJoinSchema.safeParse(payload);
+      if (!parsed.success) return socket.emit('error', { code: 'invalid_payload', message: parsed.error.message });
 
-    const userId = socket.data.user.id;
-    await joinChannel(parsed.data.channelId, userId);
-    socket.join(`channel:${parsed.data.channelId}`);
+      const userId = socket.data.user.id;
+      await joinChannel(parsed.data.channelId, userId);
+      socket.join(`channel:${parsed.data.channelId}`);
 
-    socket.to(`channel:${parsed.data.channelId}`).emit('user:joined', {
-      channelId: parsed.data.channelId,
-      username: socket.data.user.username,
-    });
+      socket.to(`channel:${parsed.data.channelId}`).emit('user:joined', {
+        channelId: parsed.data.channelId,
+        username: socket.data.user.username,
+      });
+    } catch (err) {
+      app.log.error(err);
+      socket.emit('error', { code: 'internal_error', message: 'Something went wrong' });
+    }
   });
 
   socket.on('channel:leave', async (payload) => {
-    const parsed = channelJoinSchema.safeParse(payload);
-    if (!parsed.success) return socket.emit('error', { code: 'invalid_payload', message: parsed.error.message });
-    socket.leave(`channel:${parsed.data.channelId}`);
+    try {
+      const parsed = channelJoinSchema.safeParse(payload);
+      if (!parsed.success) return socket.emit('error', { code: 'invalid_payload', message: parsed.error.message });
+      socket.leave(`channel:${parsed.data.channelId}`);
+    } catch (err) {
+      app.log.error(err);
+      socket.emit('error', { code: 'internal_error', message: 'Something went wrong' });
+    }
   });
 }
 

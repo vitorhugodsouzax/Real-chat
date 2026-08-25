@@ -21,29 +21,34 @@ function isRateLimited(userId: number): boolean {
 
 export function registerMessageHandlers(app: FastifyInstance, socket: Socket) {
   socket.on('message:send', async (payload) => {
-    const userId = socket.data.user.id;
+    try {
+      const userId = socket.data.user.id;
 
-    if (isRateLimited(userId)) {
-      return socket.emit('error', { code: 'rate_limited', message: 'Too many messages, slow down' });
+      if (isRateLimited(userId)) {
+        return socket.emit('error', { code: 'rate_limited', message: 'Too many messages, slow down' });
+      }
+
+      const parsed = messageSendSchema.safeParse(payload);
+      if (!parsed.success) {
+        return socket.emit('error', { code: 'invalid_payload', message: parsed.error.message });
+      }
+
+      const { channelId, recipientId, content, attachment } = parsed.data;
+
+      if (channelId) {
+        const member = await isMember(channelId, userId);
+        if (!member) return socket.emit('error', { code: 'forbidden', message: 'Not a member of this channel' });
+
+        const saved = await saveChannelMessage(channelId, userId, content, attachment);
+        app.io.to(`channel:${channelId}`).emit('message:new', saved);
+        return;
+      }
+
+      const saved = await saveDirectMessage(userId, recipientId!, content, attachment);
+      app.io.to(`user:${recipientId}`).to(`user:${userId}`).emit('message:new', saved);
+    } catch (err) {
+      app.log.error(err);
+      socket.emit('error', { code: 'internal_error', message: 'Something went wrong' });
     }
-
-    const parsed = messageSendSchema.safeParse(payload);
-    if (!parsed.success) {
-      return socket.emit('error', { code: 'invalid_payload', message: parsed.error.message });
-    }
-
-    const { channelId, recipientId, content, attachment } = parsed.data;
-
-    if (channelId) {
-      const member = await isMember(channelId, userId);
-      if (!member) return socket.emit('error', { code: 'forbidden', message: 'Not a member of this channel' });
-
-      const saved = await saveChannelMessage(channelId, userId, content, attachment);
-      app.io.to(`channel:${channelId}`).emit('message:new', saved);
-      return;
-    }
-
-    const saved = await saveDirectMessage(userId, recipientId!, content, attachment);
-    app.io.to(`user:${recipientId}`).to(`user:${userId}`).emit('message:new', saved);
   });
 }
