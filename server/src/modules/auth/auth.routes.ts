@@ -14,9 +14,16 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.code(409).send({ error: 'username_taken', message: 'Username already exists' });
     }
 
-    const user = await createUser(parsed.data.username, parsed.data.password);
-    const token = app.jwt.sign({ id: user.id, username: user.username });
-    return reply.code(201).send({ token, user });
+    try {
+      const user = await createUser(parsed.data.username, parsed.data.password);
+      const token = app.jwt.sign({ id: user.id, username: user.username });
+      return reply.code(201).send({ token, user });
+    } catch (err: any) {
+      if (err?.code === '23505') {
+        return reply.code(409).send({ error: 'username_taken', message: 'Username already exists' });
+      }
+      throw err;
+    }
   });
 
   app.post('/auth/login', async (request, reply) => {
