@@ -4,12 +4,18 @@ import path from 'node:path';
 import multipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
 import rateLimit from '@fastify/rate-limit';
+import fastifySocketIOPkg from 'fastify-socket.io';
 import jwtPlugin from './plugins/jwt.js';
 import errorHandlerPlugin from './plugins/error-handler.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { channelsRoutes } from './modules/channels/channels.routes.js';
 import { messagesRoutes } from './modules/messages/messages.routes.js';
 import { uploadsRoutes } from './modules/uploads/uploads.routes.js';
+
+// fastify-socket.io is a CJS package; under NodeNext/ESM module resolution,
+// a default import binds to the whole CJS `module.exports` object rather
+// than the plugin function itself, so the actual plugin must be unwrapped.
+const fastifySocketIO = fastifySocketIOPkg.default;
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: true });
@@ -34,6 +40,10 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(channelsRoutes);
   await app.register(messagesRoutes);
   await app.register(uploadsRoutes);
+
+  await app.register(fastifySocketIO, {
+    cors: { origin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173' },
+  });
 
   return app;
 }
