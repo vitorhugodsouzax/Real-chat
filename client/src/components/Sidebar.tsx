@@ -6,13 +6,19 @@ import CreateChannelForm from './CreateChannelForm.js';
 
 export default function Sidebar() {
   const [channels, setChannels] = useState<Channel[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const activeConversation = useChatStore((s) => s.activeConversation);
   const setActiveConversation = useChatStore((s) => s.setActiveConversation);
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
 
   async function refresh() {
-    setChannels(await listChannels());
+    try {
+      setChannels(await listChannels());
+      setError(null);
+    } catch {
+      setError('Não foi possível carregar os canais');
+    }
   }
 
   useEffect(() => {
@@ -27,6 +33,7 @@ export default function Sidebar() {
       </div>
 
       <h2>Canais</h2>
+      {error && <p className="error">{error}</p>}
       <ul>
         {channels.map((c) => (
           <li key={c.id}>
