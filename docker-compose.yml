@@ -10,5 +10,28 @@ services:
     volumes:
       - realchat_pgdata:/var/lib/postgresql/data
 
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://realchat:realchat@postgres:5432/realchat
+      JWT_SECRET: change-me-in-production
+      CLIENT_ORIGIN: http://localhost:4173
+    ports:
+      - "3000:3000"
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    environment:
+      VITE_API_URL: http://localhost:3000
+    ports:
+      - "4173:4173"
+
 volumes:
   realchat_pgdata:
