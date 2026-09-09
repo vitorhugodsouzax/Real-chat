@@ -1,10 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
 import { ActiveConversation } from '../store/chatStore.js';
 import { getChannelMessages, getDirectMessages, Message } from '../api/messages.js';
+import { API_URL } from '../api/client.js';
 import { useSocket } from '../socket/useSocket.js';
 
 type SystemEvent = { kind: 'joined'; username: string; id: string };
 type ListItem = (Message & { kind: 'message' }) | SystemEvent;
+
+const URL_PATTERN = /(https?:\/\/[^\s]+)/g;
+
+function renderContent(content: string) {
+  const parts = content.split(URL_PATTERN);
+  return parts.map((part, i) =>
+    URL_PATTERN.test(part) ? (
+      <a key={i} href={part} target="_blank" rel="noreferrer">
+        {part}
+      </a>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  );
+}
+
+function resolveAttachmentUrl(url: string) {
+  return /^https?:\/\//.test(url) ? url : `${API_URL}${url}`;
+}
 
 export default function MessageList({ conversation }: { conversation: ActiveConversation }) {
   const [items, setItems] = useState<ListItem[]>([]);
@@ -78,9 +98,13 @@ export default function MessageList({ conversation }: { conversation: ActiveConv
         ) : (
           <div key={item.id} className="message">
             <strong>#{item.senderId}</strong>
-            {item.content && <span>{item.content}</span>}
-            {item.attachmentType === 'image' && <img src={item.attachmentUrl!} alt="anexo" />}
-            {item.attachmentType === 'video' && <video src={item.attachmentUrl!} controls />}
+            {item.content && <span>{renderContent(item.content)}</span>}
+            {item.attachmentType === 'image' && (
+              <img src={resolveAttachmentUrl(item.attachmentUrl!)} alt="anexo" />
+            )}
+            {item.attachmentType === 'video' && (
+              <video src={resolveAttachmentUrl(item.attachmentUrl!)} controls />
+            )}
           </div>
         ),
       )}

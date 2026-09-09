@@ -1,7 +1,8 @@
-import { FormEvent, useRef, useState } from 'react';
+import { ChangeEvent, FormEvent, useRef, useState } from 'react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { ActiveConversation } from '../store/chatStore.js';
 import { useSocket } from '../socket/useSocket.js';
+import { uploadFile } from '../api/uploads.js';
 
 const TYPING_DEBOUNCE_MS = 1500;
 
@@ -35,6 +36,19 @@ export default function MessageInput({ conversation }: { conversation: ActiveCon
     send();
   }
 
+  async function handleFileSelected(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !socket) return;
+
+    const uploaded = await uploadFile(file);
+    const payload =
+      conversation.type === 'channel'
+        ? { channelId: conversation.id, content: file.name, attachment: uploaded }
+        : { recipientId: conversation.id, content: file.name, attachment: uploaded };
+    socket.emit('message:send', payload);
+  }
+
   function handleEmojiClick(data: EmojiClickData) {
     setText((prev) => prev + data.emoji);
     setShowEmojiPicker(false);
@@ -42,6 +56,10 @@ export default function MessageInput({ conversation }: { conversation: ActiveCon
 
   return (
     <form className="message-input" onSubmit={handleSubmit}>
+      <label className="attach-button">
+        📎
+        <input type="file" accept="image/*,video/*" onChange={handleFileSelected} hidden />
+      </label>
       <button type="button" onClick={() => setShowEmojiPicker((v) => !v)} aria-label="Emojis">
         😀
       </button>
