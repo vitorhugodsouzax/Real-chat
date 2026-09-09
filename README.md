@@ -65,9 +65,9 @@ npm run test --workspace=server
 
 ## Decisões e simplificações
 
-- Uploads são salvos em disco local (`server/uploads`) — em produção o ideal
+- Uploads são salvos em disco local (`server/uploads`) - em produção o ideal
   seria um serviço de armazenamento de objetos (S3 ou equivalente).
-- Não há verificação de e-mail nem recuperação de senha — o cadastro é só
+- Não há verificação de e-mail nem recuperação de senha - o cadastro é só
   usuário e senha, focado em demonstrar o fluxo de autenticação.
-- Uma única instância do Socket.IO — sem adaptador Redis para múltiplas
+- Uma única instância do Socket.IO - sem adaptador Redis para múltiplas
   instâncias, o que seria necessário em um cenário de produção com mais tráfego.
