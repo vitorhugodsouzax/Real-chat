@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Channel, listChannels } from '../api/channels.js';
+import { Channel, joinChannel, listChannels } from '../api/channels.js';
+import { ApiError } from '../api/client.js';
 import { useChatStore } from '../store/chatStore.js';
 import { useAuthStore } from '../store/authStore.js';
 import CreateChannelForm from './CreateChannelForm.js';
@@ -25,6 +26,15 @@ export default function Sidebar() {
     refresh();
   }, []);
 
+  async function handleSelectChannel(c: Channel) {
+    try {
+      await joinChannel(c.id);
+      setActiveConversation({ type: 'channel', id: c.id, name: c.name });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível entrar no canal');
+    }
+  }
+
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -39,7 +49,7 @@ export default function Sidebar() {
           <li key={c.id}>
             <button
               className={activeConversation?.type === 'channel' && activeConversation.id === c.id ? 'active' : ''}
-              onClick={() => setActiveConversation({ type: 'channel', id: c.id, name: c.name })}
+              onClick={() => handleSelectChannel(c)}
             >
               #{c.name}
             </button>
