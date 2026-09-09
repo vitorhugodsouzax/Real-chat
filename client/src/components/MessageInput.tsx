@@ -1,4 +1,5 @@
 import { FormEvent, useRef, useState } from 'react';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { ActiveConversation } from '../store/chatStore.js';
 import { useSocket } from '../socket/useSocket.js';
 
@@ -6,6 +7,7 @@ const TYPING_DEBOUNCE_MS = 1500;
 
 export default function MessageInput({ conversation }: { conversation: ActiveConversation }) {
   const [text, setText] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const socket = useSocket();
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -33,8 +35,21 @@ export default function MessageInput({ conversation }: { conversation: ActiveCon
     send();
   }
 
+  function handleEmojiClick(data: EmojiClickData) {
+    setText((prev) => prev + data.emoji);
+    setShowEmojiPicker(false);
+  }
+
   return (
     <form className="message-input" onSubmit={handleSubmit}>
+      <button type="button" onClick={() => setShowEmojiPicker((v) => !v)} aria-label="Emojis">
+        😀
+      </button>
+      {showEmojiPicker && (
+        <div className="emoji-picker-popover">
+          <EmojiPicker onEmojiClick={handleEmojiClick} />
+        </div>
+      )}
       <input
         value={text}
         onChange={(e) => {
