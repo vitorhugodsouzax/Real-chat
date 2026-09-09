@@ -6,4 +6,4 @@ RUN npm install --workspace=server
 COPY server server
 RUN npm run build --workspace=server
 EXPOSE 3000
-CMD ["npm", "run", "start", "--workspace=server"]
+CMD ["sh", "-c", "npm run db:migrate --workspace=server && npm run start --workspace=server"]
