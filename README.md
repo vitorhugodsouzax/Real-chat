@@ -1,4 +1,4 @@
-# Realchat
+## Realchat
 
 Aplicação de chat em tempo real, feita para praticar e demonstrar desenvolvimento
 backend com Node.js. Usuários se cadastram, criam ou entram em canais públicos,
