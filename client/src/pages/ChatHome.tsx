@@ -5,6 +5,8 @@ import { useChatStore } from '../store/chatStore.js';
 import { useSocket } from '../socket/useSocket.js';
 import Sidebar from '../components/Sidebar.js';
 import MessageList from '../components/MessageList.js';
+import MessageInput from '../components/MessageInput.js';
+import TypingIndicator from '../components/TypingIndicator.js';
 
 export default function ChatHome() {
   const token = useAuthStore((s) => s.token);
@@ -31,7 +33,11 @@ export default function ChatHome() {
       <Sidebar />
       <main className="chat-panel">
         {activeConversation ? (
-          <MessageList conversation={activeConversation} />
+          <>
+            <MessageList conversation={activeConversation} />
+            <TypingIndicator conversation={activeConversation} />
+            <MessageInput conversation={activeConversation} />
+          </>
         ) : (
           <p>Selecione um canal para começar a conversar.</p>
         )}
