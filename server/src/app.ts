@@ -11,6 +11,7 @@ import { authRoutes } from './modules/auth/auth.routes.js';
 import { channelsRoutes } from './modules/channels/channels.routes.js';
 import { messagesRoutes } from './modules/messages/messages.routes.js';
 import { uploadsRoutes } from './modules/uploads/uploads.routes.js';
+import { usersRoutes } from './modules/users/users.routes.js';
 
 // fastify-socket.io is a CJS package; under NodeNext/ESM module resolution,
 // a default import binds to the whole CJS `module.exports` object rather
@@ -40,6 +41,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(channelsRoutes);
   await app.register(messagesRoutes);
   await app.register(uploadsRoutes);
+  await app.register(usersRoutes);
 
   await app.register(fastifySocketIO, {
     cors: { origin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173' },
