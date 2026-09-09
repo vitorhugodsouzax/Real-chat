@@ -14,14 +14,9 @@ export function useSocket(): Socket | null {
       return;
     }
 
-    resetSocket();
     const s = getSocket();
-    s.connect();
+    if (!s.connected) s.connect();
     setSocket(s);
-
-    return () => {
-      resetSocket();
-    };
   }, [token]);
 
   return socket;
