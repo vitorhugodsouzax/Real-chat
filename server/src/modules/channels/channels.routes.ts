@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { createChannelSchema } from './channels.schema.js';
-import { listPublicChannels, createChannel, joinChannel, getChannel } from './channels.service.js';
+import { listPublicChannels, createChannel, joinChannel, getChannel, PrivateChannelError } from './channels.service.js';
 
 export async function channelsRoutes(app: FastifyInstance) {
   app.get('/channels', { preHandler: [app.authenticate] }, async () => {
@@ -24,7 +24,14 @@ export async function channelsRoutes(app: FastifyInstance) {
       return reply.code(404).send({ error: 'not_found', message: 'Channel does not exist' });
     }
     const user = request.user as { id: number };
-    await joinChannel(channelId, user.id);
+    try {
+      await joinChannel(channelId, user.id);
+    } catch (err) {
+      if (err instanceof PrivateChannelError) {
+        return reply.code(403).send({ error: 'forbidden', message: 'This channel is private' });
+      }
+      throw err;
+    }
     return reply.send({ joined: true });
   });
 }

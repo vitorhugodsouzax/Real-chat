@@ -97,7 +97,7 @@ export default function MessageList({ conversation }: { conversation: ActiveConv
           </div>
         ) : (
           <div key={item.id} className="message">
-            <strong>#{item.senderId}</strong>
+            <strong>{item.senderUsername}</strong>
             {item.content && <span>{renderContent(item.content)}</span>}
             {item.attachmentType === 'image' && (
               <img src={resolveAttachmentUrl(item.attachmentUrl!)} alt="anexo" />

@@ -2,6 +2,10 @@ import { FormEvent, useState } from 'react';
 import { createChannel } from '../api/channels.js';
 import { ApiError } from '../api/client.js';
 
+const ERROR_MESSAGES: Record<string, string> = {
+  invalid_body: 'Dados inválidos',
+};
+
 export default function CreateChannelForm({ onCreated }: { onCreated: () => void }) {
   const [name, setName] = useState('');
   const [topic, setTopic] = useState('');
@@ -17,7 +21,11 @@ export default function CreateChannelForm({ onCreated }: { onCreated: () => void
       setTopic('');
       onCreated();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível criar o canal');
+      setError(
+        err instanceof ApiError
+          ? ERROR_MESSAGES[err.error] ?? 'Algo deu errado, tente novamente'
+          : 'Não foi possível criar o canal',
+      );
     }
   }
 

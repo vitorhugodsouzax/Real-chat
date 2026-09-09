@@ -1,6 +1,6 @@
 import { and, eq, lt, or, desc } from 'drizzle-orm';
 import { db } from '../../db/client.js';
-import { messages } from '../../db/schema.js';
+import { messages, users } from '../../db/schema.js';
 
 const DEFAULT_LIMIT = 30;
 
@@ -40,8 +40,19 @@ export async function getChannelMessages(channelId: number, cursor?: number, lim
     : eq(messages.channelId, channelId);
 
   const rows = await db
-    .select()
+    .select({
+      id: messages.id,
+      channelId: messages.channelId,
+      recipientId: messages.recipientId,
+      senderId: messages.senderId,
+      content: messages.content,
+      attachmentUrl: messages.attachmentUrl,
+      attachmentType: messages.attachmentType,
+      createdAt: messages.createdAt,
+      senderUsername: users.username,
+    })
     .from(messages)
+    .leftJoin(users, eq(messages.senderId, users.id))
     .where(conditions)
     .orderBy(desc(messages.id))
     .limit(limit);
@@ -57,8 +68,19 @@ export async function getDirectMessages(userA: number, userB: number, cursor?: n
   const conditions = cursor ? and(pairCondition, lt(messages.id, cursor)) : pairCondition;
 
   const rows = await db
-    .select()
+    .select({
+      id: messages.id,
+      channelId: messages.channelId,
+      recipientId: messages.recipientId,
+      senderId: messages.senderId,
+      content: messages.content,
+      attachmentUrl: messages.attachmentUrl,
+      attachmentType: messages.attachmentType,
+      createdAt: messages.createdAt,
+      senderUsername: users.username,
+    })
     .from(messages)
+    .leftJoin(users, eq(messages.senderId, users.id))
     .where(conditions)
     .orderBy(desc(messages.id))
     .limit(limit);

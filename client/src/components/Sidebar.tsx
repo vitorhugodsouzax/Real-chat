@@ -7,6 +7,11 @@ import { useAuthStore } from '../store/authStore.js';
 import { useSocket } from '../socket/useSocket.js';
 import CreateChannelForm from './CreateChannelForm.js';
 
+const ERROR_MESSAGES: Record<string, string> = {
+  not_found: 'Canal não encontrado',
+  forbidden: 'Você não tem permissão para isso',
+};
+
 export default function Sidebar() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [users, setUsers] = useState<ChatUser[]>([]);
@@ -48,7 +53,11 @@ export default function Sidebar() {
       await joinChannel(c.id);
       setActiveConversation({ type: 'channel', id: c.id, name: c.name });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível entrar no canal');
+      setError(
+        err instanceof ApiError
+          ? ERROR_MESSAGES[err.error] ?? 'Algo deu errado, tente novamente'
+          : 'Não foi possível entrar no canal',
+      );
     }
   }
 

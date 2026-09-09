@@ -3,6 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { loginRequest, ApiError } from '../api/client.js';
 import { useAuthStore } from '../store/authStore.js';
 
+const ERROR_MESSAGES: Record<string, string> = {
+  invalid_credentials: 'Usuário ou senha incorretos',
+  invalid_body: 'Dados inválidos',
+};
+
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +23,11 @@ export default function Login() {
       setSession(token, user);
       navigate('/');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível entrar');
+      setError(
+        err instanceof ApiError
+          ? ERROR_MESSAGES[err.error] ?? 'Algo deu errado, tente novamente'
+          : 'Não foi possível entrar',
+      );
     }
   }
 

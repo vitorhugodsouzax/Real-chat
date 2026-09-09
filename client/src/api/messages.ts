@@ -5,6 +5,7 @@ export type Message = {
   channelId: number | null;
   recipientId: number | null;
   senderId: number;
+  senderUsername: string;
   content: string | null;
   attachmentUrl: string | null;
   attachmentType: 'image' | 'video' | null;

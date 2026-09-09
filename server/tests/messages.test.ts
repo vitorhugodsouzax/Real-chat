@@ -58,6 +58,7 @@ describe('messages', () => {
     const body = res.json();
     expect(body.messages[0].content).toBe('second');
     expect(body.messages[1].content).toBe('first');
+    expect(body.messages[0].senderUsername).toBe('messages_test_user');
   });
 
   it('forbids non-members from reading channel history', async () => {

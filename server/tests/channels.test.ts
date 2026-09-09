@@ -60,4 +60,32 @@ describe('channels', () => {
     const res = await app.inject({ method: 'GET', url: '/channels' });
     expect(res.statusCode).toBe(401);
   });
+
+  it('forbids joining a private channel unless creator or already a member', async () => {
+    const app = await buildApp();
+    const token = await registerUser(app, 'channels_test_user_private');
+
+    const create = await app.inject({
+      method: 'POST',
+      url: '/channels',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { name: 'private-test', isPrivate: true },
+    });
+    expect(create.statusCode).toBe(201);
+    const channelId = create.json().id;
+
+    const token2 = await registerUser(app, 'channels_test_user_private_2');
+    const join = await app.inject({
+      method: 'POST',
+      url: `/channels/${channelId}/join`,
+      headers: { authorization: `Bearer ${token2}` },
+    });
+    expect(join.statusCode).toBe(403);
+    expect(join.json()).toEqual({ error: 'forbidden', message: 'This channel is private' });
+
+    await db.delete(channelMembers).where(eq(channelMembers.channelId, channelId));
+    await db.delete(channels).where(eq(channels.id, channelId));
+    await db.delete(users).where(eq(users.username, 'channels_test_user_private'));
+    await db.delete(users).where(eq(users.username, 'channels_test_user_private_2'));
+  });
 });

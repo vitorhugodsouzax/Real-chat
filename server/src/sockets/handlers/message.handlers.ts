@@ -40,12 +40,15 @@ export function registerMessageHandlers(app: FastifyInstance, socket: Socket) {
         if (!member) return socket.emit('error', { code: 'forbidden', message: 'Not a member of this channel' });
 
         const saved = await saveChannelMessage(channelId, userId, content, attachment);
-        app.io.to(`channel:${channelId}`).emit('message:new', saved);
+        app.io.to(`channel:${channelId}`).emit('message:new', { ...saved, senderUsername: socket.data.user.username });
         return;
       }
 
       const saved = await saveDirectMessage(userId, recipientId!, content, attachment);
-      app.io.to(`user:${recipientId}`).to(`user:${userId}`).emit('message:new', saved);
+      app.io
+        .to(`user:${recipientId}`)
+        .to(`user:${userId}`)
+        .emit('message:new', { ...saved, senderUsername: socket.data.user.username });
     } catch (err) {
       app.log.error(err);
       socket.emit('error', { code: 'internal_error', message: 'Something went wrong' });

@@ -15,9 +15,21 @@ export async function createChannel(input: { name: string; topic?: string; isPri
   return channel;
 }
 
+export class PrivateChannelError extends Error {
+  constructor() {
+    super('This channel is private');
+  }
+}
+
 export async function joinChannel(channelId: number, userId: number) {
   const already = await isMember(channelId, userId);
   if (already) return;
+
+  const channel = await getChannel(channelId);
+  if (channel?.isPrivate && channel.createdBy !== userId) {
+    throw new PrivateChannelError();
+  }
+
   await db.insert(channelMembers).values({ channelId, userId });
 }
 

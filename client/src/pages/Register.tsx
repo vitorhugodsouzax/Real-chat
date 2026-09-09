@@ -3,6 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { registerRequest, ApiError } from '../api/client.js';
 import { useAuthStore } from '../store/authStore.js';
 
+const ERROR_MESSAGES: Record<string, string> = {
+  username_taken: 'Este nome de usuário já existe',
+  invalid_body: 'Dados inválidos',
+};
+
 export default function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +23,11 @@ export default function Register() {
       setSession(token, user);
       navigate('/');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível criar a conta');
+      setError(
+        err instanceof ApiError
+          ? ERROR_MESSAGES[err.error] ?? 'Algo deu errado, tente novamente'
+          : 'Não foi possível criar a conta',
+      );
     }
   }
 
